@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ledgerly — Net Worth Calculator | Track Assets vs Liabilities</title>
+<meta name="description" content="Ledgerly is a free net worth calculator with a live assets vs liabilities balance bar, saved snapshots with a trend sparkline, and a net-worth-by-age benchmark. No signup, unlimited free usage.">
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  body{font-family:'Inter',system-ui,sans-serif;background:#0F172A;color:#E2E8F0}
+  .font-display{font-family:'Fraunces',serif}
+  .sheet{background:linear-gradient(180deg,#1E293B,#16202f);border:1px solid #334155;border-radius:1rem}
+  input[type=number],input[type=text]{background:#0B1220;border:1px solid #334155;border-radius:.5rem;color:#F1F5F9;padding:.45rem .6rem;width:100%;font-size:.9rem}
+  input:focus{outline:2px solid #10B981;outline-offset:1px;border-color:#10B981}
+  .rowline{display:grid;grid-template-columns:1fr 110px 28px;gap:.4rem;align-items:center}
+  @media (max-width:480px){.rowline{grid-template-columns:1fr 88px 26px}}
+  .del{color:#64748B;font-weight:700}
+  .del:hover{color:#F87171}
+  details summary{cursor:pointer}
+  #barAssets,#barLiab{transition:width .5s ease}
+</style>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"How do I calculate my net worth?","acceptedAnswer":{"@type":"Answer","text":"Add up everything you own that has value — cash, investments, property, vehicles — then subtract everything you owe, such as mortgages, loans and credit card balances. The result is your net worth."}},
+{"@type":"Question","name":"What counts as an asset in a net worth calculation?","acceptedAnswer":{"@type":"Answer","text":"Assets are things you own with measurable value: bank balances, retirement and brokerage accounts, real estate, vehicles, business equity and valuable possessions you could realistically sell."}},
+{"@type":"Question","name":"What counts as a liability?","acceptedAnswer":{"@type":"Answer","text":"Liabilities are debts you owe: mortgages, car loans, student loans, personal loans, credit card balances and any other amount you are obligated to repay."}},
+{"@type":"Question","name":"What is a good net worth by age?","acceptedAnswer":{"@type":"Answer","text":"A classic benchmark from The Millionaire Next Door expects net worth of roughly your age multiplied by your annual income, divided by ten. Reaching one times your income by your mid-30s and three times by your late 40s are other common milestones."}},
+{"@type":"Question","name":"How often should I recalculate my net worth?","acceptedAnswer":{"@type":"Answer","text":"Most people benefit from checking quarterly or monthly. Frequent enough to notice trends and celebrate progress, but not so often that daily market swings cause stress."}},
+{"@type":"Question","name":"Is my data private when I use Ledgerly?","acceptedAnswer":{"@type":"Answer","text":"Yes. Ledgerly runs entirely in your browser. Your figures are never sent to a server; snapshots are stored only in your own browser's local storage on your device."}}
+]}
+</script>
+</head>
+<body id="top">
+<header class="sticky top-0 z-40 bg-slate-900/90 backdrop-blur border-b border-slate-700">
+  <div class="mx-auto max-w-6xl px-4 sm:px-6 h-14 flex items-center justify-between">
+    <a href="#top" class="flex items-center gap-2 font-display font-bold text-xl text-emerald-400">▦ Ledgerly</a>
+    <nav class="flex items-center gap-5 text-sm font-medium">
+      <a href="#top" class="text-slate-300 hover:text-emerald-300">Home</a>
+      <a href="https://fixoraa.tech" class="text-slate-300 hover:text-emerald-300">More Tools</a>
+    </nav>
+  </div>
+</header>
+
+<div class="no-print mx-auto max-w-6xl px-4 sm:px-6 pt-4" role="complementary" aria-label="Advertisement">
+  <div class="mx-auto text-center" style="max-width:728px">
+    <span class="block text-[10px] tracking-[0.18em] uppercase text-slate-400 mb-1.5">Advertisement</span>
+    <div class="flex justify-center overflow-hidden">
+      <div class="origin-top scale-[0.44] sm:scale-100 shrink-0">
+        <script>
+          atOptions = { 'key' : '4e68ac77881c17fe128a46565d9a4e8c', 'format' : 'iframe', 'height' : 90, 'width' : 728, 'params' : {} };
+        </script>
+        <script src="https://www.highrevenueformat.com/4e68ac77881c17fe128a46565d9a4e8c/invoke.js"></script>
+      </div>
+    </div>
+  </div>
+</div>
+
+<main class="mx-auto max-w-6xl px-4 sm:px-6 py-8">
+  <div class="text-center max-w-2xl mx-auto">
+    <span class="inline-block bg-emerald-500/15 text-emerald-300 border border-emerald-500/40 text-xs font-bold px-3 py-1 rounded-full">✓ Unlimited Free Usage</span>
+    <h1 class="font-display text-4xl sm:text-5xl font-bold mt-4 text-slate-50">Net Worth Calculator</h1>
+    <p class="text-slate-400 mt-3">A personal balance sheet, the way accountants see it: everything you own on one side, everything you owe on the other, and one honest number in between.</p>
+  </div>
+
+  <!-- Summary strip -->
+  <section class="sheet mt-8 p-5 sm:p-6" aria-label="Net worth summary">
+    <div class="flex flex-wrap items-end justify-between gap-4">
+      <div>
+        <p class="text-xs uppercase tracking-widest text-slate-400">Your net worth</p>
+        <p id="nwValue" class="font-display text-4xl sm:text-5xl font-bold text-emerald-400">$0</p>
+        <p id="nwStatus" class="text-sm text-slate-400 mt-1">Add your assets and liabilities to see your balance sheet come alive.</p>
+      </div>
+      <div class="flex gap-6 text-sm">
+        <div><p class="text-slate-400 text-xs uppercase tracking-wide">Total assets</p><p id="sumAssets" class="font-bold text-emerald-300 text-lg">$0</p></div>
+        <div><p class="text-slate-400 text-xs uppercase tracking-wide">Total liabilities</p><p id="sumLiab" class="font-bold text-rose-300 text-lg">$0</p></div>
+        <div><p class="text-slate-400 text-xs uppercase tracking-wide">Debt-to-assets</p><p id="sumRatio" class="font-bold text-slate-100 text-lg">0%</p></div>
+      </div>
+      <label class="text-sm text-slate-300">Currency
+        <select id="currency" class="block mt-1 bg-slate-900 border border-slate-600 rounded-lg px-2 py-1.5 text-slate-100">
+          <option value="$">$ USD</option><option value="€">€ EUR</option><option value="£">£ GBP</option><option value="₹">₹ INR</option><option value="¥">¥ JPY</option>
+        </select>
+      </label>
+    </div>
+    <div class="mt-5">
+      <div class="flex h-6 rounded-full overflow-hidden bg-slate-800 border border-slate-600" role="img" aria-label="Assets versus liabilities balance bar">
+        <div id="barAssets" class="bg-emerald-500 h-full" style="width:50%"></div>
+        <div id="barLiab" class="bg-rose-500 h-full" style="width:50%"></div>
+      </div>
+      <div class="flex justify-between text-xs mt-1.5 text-slate-400"><span id="barAssetsLbl" class="text-emerald-300 font-semibold">Assets 50%</span><span id="barLiabLbl" class="text-rose-300 font-semibold">Liabilities 50%</span></div>
+    </div>
+  </section>
+
+  <!-- Balance sheet two-column -->
+  <section class="grid md:grid-cols-2 gap-5 mt-5">
+    <div class="sheet p-5">
+      <div class="flex items-center justify-between">
+        <h2 class="font-display text-xl font-bold text-emerald-300">Assets — what you own</h2>
+        <button id="addAsset" class="text-sm bg-emerald-600 hover:bg-emerald-500 text-white font-semibold px-3 py-1.5 rounded-lg">+ Add row</button>
+      </div>
+      <div id="assetRows" class="mt-4 space-y-2"></div>
+      <p class="text-right text-sm mt-3 text-slate-300">Total: <span id="assetTotal" class="font-bold text-emerald-300">$0</span></p>
+    </div>
+    <div class="sheet p-5">
+      <div class="flex items-center justify-between">
+        <h2 class="font-display text-xl font-bold text-rose-300">Liabilities — what you owe</h2>
+        <button id="addLiab" class="text-sm bg-rose-600 hover:bg-rose-500 text-white font-semibold px-3 py-1.5 rounded-lg">+ Add row</button>
+      </div>
+      <div id="liabRows" class="mt-4 space-y-2"></div>
+      <p class="text-right text-sm mt-3 text-slate-300">Total: <span id="liabTotal" class="font-bold text-rose-300">$0</span></p>
+    </div>
+  </section>
+
+  <div class="flex flex-wrap gap-3 mt-5">
+    <button id="loadSample" class="bg-slate-700 hover:bg-slate-600 text-slate-100 font-semibold px-4 py-2 rounded-lg text-sm">Load sample balance sheet</button>
+    <button id="clearAll" class="bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-200 font-semibold px-4 py-2 rounded-lg text-sm">Clear all</button>
+  </div>
+
+  <!-- Benchmark + snapshots -->
+  <section class="grid md:grid-cols-2 gap-5 mt-5">
+    <div class="sheet p-5">
+      <h2 class="font-display text-xl font-bold text-slate-50">Net-worth-by-age benchmark</h2>
+      <p class="text-sm text-slate-400 mt-1">Compare yourself with the classic age-and-income benchmark (age × annual income ÷ 10).</p>
+      <div class="grid grid-cols-2 gap-3 mt-4">
+        <label class="text-sm text-slate-300">Your age<input type="number" id="age" min="1" max="120" placeholder="e.g. 35" class="mt-1"></label>
+        <label class="text-sm text-slate-300">Annual income<input type="number" id="income" min="0" placeholder="e.g. 80000" class="mt-1"></label>
+      </div>
+      <div id="benchOut" class="mt-4 text-sm bg-slate-900/60 border border-slate-700 rounded-lg p-3 text-slate-300">Enter your age to see age-band guidance. Add your income for a personalised benchmark comparison.</div>
+    </div>
+    <div class="sheet p-5">
+      <div class="flex items-center justify-between">
+        <h2 class="font-display text-xl font-bold text-slate-50">Snapshots &amp; trend</h2>
+        <button id="saveSnap" class="text-sm bg-emerald-600 hover:bg-emerald-500 text-white font-semibold px-3 py-1.5 rounded-lg">Save snapshot</button>
+      </div>
+      <p class="text-sm text-slate-400 mt-1">Snapshots live only in this browser. Save one each month and watch the line move.</p>
+      <div id="sparkWrap" class="mt-3 bg-slate-900/60 border border-slate-700 rounded-lg p-3">
+        <svg id="spark" viewBox="0 0 240 60" class="w-full h-16" preserveAspectRatio="none" aria-label="Net worth trend sparkline"><polyline id="sparkLine" fill="none" stroke="#10B981" stroke-width="2.5" points=""/></svg>
+        <p id="sparkNote" class="text-xs text-slate-400 mt-1">No snapshots yet — save your first one above.</p>
+      </div>
+      <ul id="snapList" class="mt-3 space-y-1.5 text-sm"></ul>
+    </div>
+  </section>
+
+  <!-- SEO ARTICLE -->
+  <article class="mt-12 max-w-3xl mx-auto text-slate-300 leading-relaxed space-y-5" id="article">
+    <h2 class="font-display text-3xl font-bold text-slate-50">Net Worth, Explained: The One Number That Summarises Your Financial Life</h2>
+    <p>Ask most people how they are doing financially and they will quote their salary. Ask a banker, a financial planner or a business owner the same question and they will talk about net worth. The difference matters. Income is a flow — money passing through your hands each month. Net worth is a stock — what remains after the flow has done its work. It is the single most honest summary of your financial position, because it counts everything you own and everything you owe in one calculation, and it is exactly what Ledgerly helps you measure.</p>
+    <p>The formula could not be simpler: net worth equals total assets minus total liabilities. An asset is anything you own that holds measurable value — the balance in your bank accounts, money in retirement and brokerage accounts, the market value of your home, vehicles, business equity, and possessions you could realistically sell. A liability is anything you owe — a mortgage, a car loan, student debt, personal loans, and credit card balances. Subtract the second list from the first and the result, positive or negative, is your net worth.</p>
+    <h3 class="font-display text-2xl font-bold text-slate-50">Why a Balance Sheet Beats a Budget for the Big Picture</h3>
+    <p>Budgets are essential for managing the month, but they cannot tell you whether you are actually getting ahead. You can feel comfortable on a high income while quietly falling behind, if every raise is matched by a larger car payment and a growing card balance. The balance sheet exposes that instantly. When you lay assets and liabilities side by side — the two-column view Ledgerly is built around — patterns jump out: a home whose equity is growing nicely, an investment account that has been neglected, a cluster of small debts that together outweigh your savings. Wealth is built in that gap between the two columns, and you cannot manage a gap you never look at.</p>
+    <p>There is also a psychological benefit. Income comparisons are endless and usually discouraging, because someone always earns more. Net worth comparisons are personal: the most meaningful benchmark is your own number from six or twelve months ago. Watching the figure climb — even slowly — turns abstract advice about saving and debt into visible progress, and visible progress is the strongest motivator personal finance has to offer.</p>
+    <h3 class="font-display text-2xl font-bold text-slate-50">What Counts, and the Judgement Calls</h3>
+    <p>Most entries are straightforward. Cash and deposits count at face value. Investments count at current market value, not what you paid for them. Property counts at a realistic selling price, ideally minus the costs of selling. Vehicles count at resale value, which is usually far less than the purchase price — a humbling but healthy correction. On the other side, count the full outstanding balance of every debt, including the mortgage, and do not forget informal obligations if you genuinely intend to repay them.</p>
+    <p>A few items spark debate. Should you include the car you need for work, or your furniture and electronics? A practical rule: include anything you could sell for a meaningful amount, and value it conservatively. Should you include future pension or social security income? Most personal balance sheets leave it out, because it is an income stream rather than an owned asset, though some planners add a conservative estimate. Whatever conventions you choose, consistency matters more than perfection — use the same rules each time so the trend is meaningful.</p>
+    <h3 class="font-display text-2xl font-bold text-slate-50">Benchmarks: What Is a Good Net Worth for Your Age?</h3>
+    <p>Because net worth grows with time and earnings, raw comparisons between a 28-year-old and a 58-year-old are meaningless. Benchmarks solve this by scaling expectations to age and income. The best known comes from the book The Millionaire Next Door: expected net worth equals your age multiplied by your annual pre-tax income, divided by ten. A 40-year-old earning 90,000 a year would have a benchmark of 360,000. The authors called people at twice that level prodigious accumulators and those below half of it under-accumulators. It is a demanding yardstick — it assumes years of saving well above average — so treat it as a compass, not a verdict.</p>
+    <p>Simpler milestone frameworks exist too. One common version suggests holding roughly one times your annual income by your mid-thirties, three times by your late forties, and six to eight times by retirement. Early in your career a negative or near-zero net worth is entirely normal: student loans arrive years before serious saving can begin, and the typical trajectory is a slow climb through the twenties, acceleration in the thirties and forties as debts fall and compounding takes over, and a peak near retirement. Ledgerly's benchmark panel shows both the age-band guidance and, if you add your income, the classic formula applied to your own figures.</p>
+    <h3 class="font-display text-2xl font-bold text-slate-50">The Levers That Move Your Net Worth</h3>
+    <p>Only four things can change your net worth: earning more, spending less than you earn, earning returns on what you own, and reducing what you owe. Every financial strategy is a combination of these levers. Paying down a credit card at twenty percent interest is arithmetically identical to earning a guaranteed twenty percent return — which is why high-interest debt repayment is almost always the first move. Increasing contributions to tax-advantaged retirement accounts pulls two levers at once: it converts income into assets and shelters the growth. Growing home equity works quietly in the background, as each mortgage payment shifts a little value from the liability column to the asset column.</p>
+    <p>The debt-to-assets ratio, shown alongside your net worth in Ledgerly, captures your leverage in one figure. Below twenty percent is very comfortable; above sixty percent means creditors effectively have a large claim on everything you own, and income shocks become dangerous. Tracking the ratio alongside the headline number prevents a subtle trap: net worth can rise while risk rises too, if both columns grow together through borrowing.</p>
+    <h3 class="font-display text-2xl font-bold text-slate-50">How Often Should You Measure?</h3>
+    <p>Quarterly is the sweet spot for most households, with monthly checks if you are actively paying down debt and want the encouragement. More frequent measurement mostly adds noise, because investment values fluctuate daily without changing your underlying position. The snapshot feature in Ledgerly exists precisely for this rhythm: save a dated snapshot each time you do a full review, and the trend sparkline converts a pile of numbers into a story. A rising line through a flat market tells you your habits are working; a flat line despite a rising income tells you lifestyle creep is eating the difference.</p>
+    <p>Finally, remember what net worth does not measure. It says nothing about liquidity — a household can be asset-rich and cash-poor, with wealth locked in a home while an emergency looms. It says nothing about insurance, job security or health. Treat it as the headline indicator of a dashboard, not the whole dashboard. But as headlines go, it is the best one personal finance has: honest, complete, and entirely within your power to improve, one column at a time.</p>
+
+    <h2 class="font-display text-3xl font-bold text-slate-50 pt-4">Frequently Asked Questions</h2>
+    <div class="space-y-3">
+      <details class="bg-slate-800/60 border border-slate-700 rounded-lg p-4"><summary class="font-semibold text-slate-100">How do I calculate my net worth?</summary><p class="mt-2">Add up everything you own that has value — cash, investments, property, vehicles — then subtract everything you owe, such as mortgages, loans and credit card balances. The result is your net worth.</p></details>
+      <details class="bg-slate-800/60 border border-slate-700 rounded-lg p-4"><summary class="font-semibold text-slate-100">What counts as an asset in a net worth calculation?</summary><p class="mt-2">Assets are things you own with measurable value: bank balances, retirement and brokerage accounts, real estate, vehicles, business equity and valuable possessions you could realistically sell.</p></details>
+      <details class="bg-slate-800/60 border border-slate-700 rounded-lg p-4"><summary class="font-semibold text-slate-100">What counts as a liability?</summary><p class="mt-2">Liabilities are debts you owe: mortgages, car loans, student loans, personal loans, credit card balances and any other amount you are obligated to repay.</p></details>
+      <details class="bg-slate-800/60 border border-slate-700 rounded-lg p-4"><summary class="font-semibold text-slate-100">What is a good net worth by age?</summary><p class="mt-2">A classic benchmark from The Millionaire Next Door expects net worth of roughly your age multiplied by your annual income, divided by ten. Reaching one times your income by your mid-30s and three times by your late 40s are other common milestones.</p></details>
+      <details class="bg-slate-800/60 border border-slate-700 rounded-lg p-4"><summary class="font-semibold text-slate-100">How often should I recalculate my net worth?</summary><p class="mt-2">Most people benefit from checking quarterly or monthly. Frequent enough to notice trends and celebrate progress, but not so often that daily market swings cause stress.</p></details>
+      <details class="bg-slate-800/60 border border-slate-700 rounded-lg p-4"><summary class="font-semibold text-slate-100">Is my data private when I use Ledgerly?</summary><p class="mt-2">Yes. Ledgerly runs entirely in your browser. Your figures are never sent to a server; snapshots are stored only in your own browser's local storage on your device.</p></details>
+    </div>
+  </article>
+</main>
+
+<div class="no-print mx-auto max-w-6xl px-4 sm:px-6 pb-4" role="complementary" aria-label="Advertisement">
+  <div class="mx-auto text-center" style="max-width:728px">
+    <span class="block text-[10px] tracking-[0.18em] uppercase text-slate-400 mb-1.5">Advertisement</span>
+    <div class="flex justify-center overflow-hidden">
+      <script async src="https://js.wpadmngr.com/static/adManager.js" data-admpid="464498"></script>
+    </div>
+  </div>
+</div>
+
+<footer class="border-t border-slate-700 py-6 text-center text-sm text-slate-500">Ledgerly — your personal balance sheet, kept simple. Figures are estimates for planning only, not financial advice.</footer>
+
+<script id="lib-ledgerly">
+var LedgerlyLib = {
+  parseAmount: function (v) {
+    if (v === null || v === undefined) return 0;
+    if (typeof v === 'number') return isFinite(v) ? v : 0;
+    var s = String(v).replace(/[^0-9.\-]/g, '');
+    if (s === '' || s === '-' || s === '.') return 0;
+    var n = parseFloat(s);
+    if (isNaN(n) || !isFinite(n)) return 0;
+    return n < 0 ? 0 : n;
+  },
+  sumEntries: function (entries) {
+    if (!Array.isArray(entries)) return 0;
+    var total = 0;
+    for (var i = 0; i < entries.length; i++) {
+      var e = entries[i];
+      total += LedgerlyLib.parseAmount(e && typeof e === 'object' ? e.amount : e);
+    }
+    return total;
+  },
+  computeNetWorth: function (assets, liabilities) {
+    var totalAssets = LedgerlyLib.sumEntries(assets);
+    var totalLiabilities = LedgerlyLib.sumEntries(liabilities);
+    var netWorth = totalAssets - totalLiabilities;
+    var assetShare = 0, liabilityShare = 0;
+    var combined = totalAssets + totalLiabilities;
+    if (combined > 0) {
+      assetShare = (totalAssets / combined) * 100;
+      liabilityShare = (totalLiabilities / combined) * 100;
+    }
+    var debtRatio = totalAssets > 0 ? (totalLiabilities / totalAssets) * 100 : (totalLiabilities > 0 ? 100 : 0);
+    return {
+      totalAssets: totalAssets,
+      totalLiabilities: totalLiabilities,
+      netWorth: netWorth,
+      assetShare: assetShare,
+      liabilityShare: liabilityShare,
+      debtRatioPct: debtRatio,
+      solvent: netWorth >= 0
+    };
+  },
+  healthLabel: function (debtRatioPct) {
+    if (debtRatioPct <= 0) return 'Debt-free';
+    if (debtRatioPct <= 20) return 'Very healthy';
+    if (debtRatioPct <= 40) return 'Healthy';
+    if (debtRatioPct <= 60) return 'Moderate leverage';
+    if (debtRatioPct <= 100) return 'High leverage';
+    return 'Underwater — debts exceed assets';
+  },
+  expectedByAge: function (age, annualIncome) {
+    var a = parseFloat(age);
+    var inc = LedgerlyLib.parseAmount(annualIncome);
+    if (isNaN(a) || a < 18 || a > 100) return null;
+    if (inc <= 0) return null;
+    return (a * inc) / 10;
+  },
+  benchmarkNote: function (age, annualIncome, netWorth) {
+    var a = parseFloat(age);
+    if (isNaN(a) || a < 1 || a > 120) return null;
+    var band, guidance;
+    if (a < 30) { band = 'Under 30'; guidance = 'Focus on building an emergency fund and keeping high-interest debt at zero; even a small positive net worth puts you ahead of many peers.'; }
+    else if (a < 40) { band = '30s'; guidance = 'A common milestone is a net worth near one times your annual income by your mid-30s, growing toward two times by 40.'; }
+    else if (a < 50) { band = '40s'; guidance = 'Many planners aim for roughly three times annual income saved by the late 40s, with mortgage principal shrinking steadily.'; }
+    else if (a < 60) { band = '50s'; guidance = 'A frequent target is five to six times annual income by the late 50s, with debts other than a low-rate mortgage mostly cleared.'; }
+    else { band = '60+'; guidance = 'Eight to ten times annual income is a classic retirement-readiness range; the priority shifts to preserving capital and keeping debt minimal.'; }
+    var expected = LedgerlyLib.expectedByAge(a, annualIncome);
+    var verdict = null, ratio = null;
+    if (expected !== null && typeof netWorth === 'number') {
+      ratio = expected > 0 ? netWorth / expected : 0;
+      if (ratio >= 2) verdict = 'Prodigious accumulator — well above the age-and-income benchmark.';
+      else if (ratio >= 1) verdict = 'Above the benchmark for your age and income.';
+      else if (ratio >= 0.5) verdict = 'Within reach of the benchmark — steady progress.';
+      else if (ratio >= 0) verdict = 'Below the benchmark — a clear, motivating target to work toward.';
+      else verdict = 'Currently negative — eliminating high-interest debt is the fastest first step.';
+    }
+    return { band: band, guidance: guidance, expected: expected, ratio: ratio, verdict: verdict };
+  },
+  sparklinePoints: function (values, width, height, pad) {
+    if (!Array.isArray(values) || values.length === 0) return '';
+    var w = width || 120, h = height || 36, p = (pad === undefined ? 3 : pad);
+    var nums = values.map(function (v) { return LedgerlyLib.parseAmount(v) || (typeof v === 'number' ? v : 0); });
+    var min = Math.min.apply(null, nums), max = Math.max.apply(null, nums);
+    var range = max - min;
+    var stepX = nums.length > 1 ? (w - 2 * p) / (nums.length - 1) : 0;
+    return nums.map(function (v, i) {
+      var x = nums.length > 1 ? p + i * stepX : w / 2;
+      var y = range === 0 ? h / 2 : p + (1 - (v - min) / range) * (h - 2 * p);
+      return x.toFixed(1) + ',' + y.toFixed(1);
+    }).join(' ');
+  },
+  changeSince: function (snapshots) {
+    if (!Array.isArray(snapshots) || snapshots.length < 2) return null;
+    var sorted = snapshots.slice().sort(function (a, b) { return a.ts - b.ts; });
+    var first = sorted[0].netWorth, last = sorted[sorted.length - 1].netWorth;
+    var diff = last - first;
+    var pct = first !== 0 ? (diff / Math.abs(first)) * 100 : null;
+    return { diff: diff, pct: pct, from: first, to: last };
+  },
+  formatMoney: function (n, symbol) {
+    var sym = symbol || '$';
+    var num = typeof n === 'number' && isFinite(n) ? n : 0;
+    var sign = num < 0 ? '-' : '';
+    var abs = Math.abs(num);
+    var str = abs >= 100 ? abs.toFixed(0) : abs.toFixed(2);
+    var parts = str.split('.');
+    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    return sign + sym + parts.join('.');
+  }
+};
+if (typeof module !== 'undefined' && module.exports) { module.exports = LedgerlyLib; }
+
+</script>
+<script>
+(function(){
+  var L = LedgerlyLib;
+  var sym = '$';
+  var LS_KEY = 'ledgerly-snapshots-v1';
+  var defaultAssets = [['Cash & savings',''],['Investments & retirement',''],['Home value',''],['Vehicles',''],['Other assets','']];
+  var defaultLiabs = [['Mortgage',''],['Car loan',''],['Student loans',''],['Credit cards',''],['Other debts','']];
+  function rowHTML(name, val){
+    return '<input type="text" class="rname" value="'+String(name).replace(/"/g,'&quot;')+'" aria-label="Item name">' +
+      '<input type="number" class="ramt" min="0" step="any" value="'+val+'" placeholder="0" aria-label="Amount">' +
+      '<button class="del" title="Remove row" aria-label="Remove row">×</button>';
+  }
+  function makeRow(container, name, val){
+    var div = document.createElement('div'); div.className='rowline'; div.innerHTML = rowHTML(name||'New item', val||'');
+    div.querySelector('.del').addEventListener('click', function(){ div.remove(); recalc(); });
+    div.querySelector('.ramt').addEventListener('input', recalc);
+    div.querySelector('.rname').addEventListener('input', recalc);
+    container.appendChild(div);
+  }
+  function readRows(id){
+    var out = [];
+    document.querySelectorAll('#'+id+' .rowline').forEach(function(r){
+      out.push({ name: r.querySelector('.rname').value, amount: r.querySelector('.ramt').value });
+    });
+    return out;
+  }
+  function fmt(n){ return L.formatMoney(n, sym); }
+  function recalc(){
+    var res = L.computeNetWorth(readRows('assetRows'), readRows('liabRows'));
+    document.getElementById('sumAssets').textContent = fmt(res.totalAssets);
+    document.getElementById('sumLiab').textContent = fmt(res.totalLiabilities);
+    document.getElementById('assetTotal').textContent = fmt(res.totalAssets);
+    document.getElementById('liabTotal').textContent = fmt(res.totalLiabilities);
+    document.getElementById('sumRatio').textContent = res.debtRatioPct.toFixed(1)+'%';
+    var nw = document.getElementById('nwValue');
+    nw.textContent = fmt(res.netWorth);
+    nw.className = 'font-display text-4xl sm:text-5xl font-bold ' + (res.netWorth >= 0 ? 'text-emerald-400' : 'text-rose-400');
+    document.getElementById('nwStatus').textContent =
+      (res.totalAssets===0 && res.totalLiabilities===0) ? 'Add your assets and liabilities to see your balance sheet come alive.'
+      : L.healthLabel(res.debtRatioPct) + (res.netWorth>=0 ? ' — your assets cover your debts.' : ' — your debts currently exceed your assets; every repayment moves this number up.');
+    var aShare = res.assetShare, lShare = res.liabilityShare;
+    if (res.totalAssets===0 && res.totalLiabilities===0){ aShare=50; lShare=50; }
+    document.getElementById('barAssets').style.width = aShare+'%';
+    document.getElementById('barLiab').style.width = lShare+'%';
+    document.getElementById('barAssetsLbl').textContent = 'Assets '+aShare.toFixed(0)+'%';
+    document.getElementById('barLiabLbl').textContent = 'Liabilities '+lShare.toFixed(0)+'%';
+    updateBench(res.netWorth);
+    return res;
+  }
+  function updateBench(nw){
+    var age = document.getElementById('age').value, inc = document.getElementById('income').value;
+    var out = document.getElementById('benchOut');
+    if (!age){ out.textContent = 'Enter your age to see age-band guidance. Add your income for a personalised benchmark comparison.'; return; }
+    var b = L.benchmarkNote(age, inc, nw);
+    if (!b){ out.textContent = 'Please enter a valid age between 18 and 100 for the benchmark.'; return; }
+    var html = '<strong class="text-slate-100">Age band: '+b.band+'.</strong> '+b.guidance;
+    if (b.expected !== null){
+      html += '<br><span class="mt-2 block">Classic benchmark for you: <strong class="text-emerald-300">'+fmt(b.expected)+'</strong>. Your net worth: <strong class="text-slate-100">'+fmt(nw)+'</strong>.</span>';
+      if (b.verdict) html += '<span class="block mt-1">'+b.verdict+'</span>';
+    } else {
+      html += '<br><span class="mt-1 block">Add your annual income to unlock the personalised benchmark figure.</span>';
+    }
+    out.innerHTML = html;
+  }
+  function getSnaps(){ try { return JSON.parse(localStorage.getItem(LS_KEY)) || []; } catch(e){ return []; } }
+  function setSnaps(s){ try { localStorage.setItem(LS_KEY, JSON.stringify(s)); } catch(e){} }
+  function renderSnaps(){
+    var snaps = getSnaps().slice().sort(function(a,b){return a.ts-b.ts;});
+    var list = document.getElementById('snapList'); list.innerHTML='';
+    snaps.forEach(function(s, i){
+      var li = document.createElement('li');
+      li.className='flex items-center justify-between bg-slate-900/60 border border-slate-700 rounded-lg px-3 py-1.5';
+      li.innerHTML = '<span>'+new Date(s.ts).toLocaleDateString()+' — <strong class="'+(s.netWorth>=0?'text-emerald-300':'text-rose-300')+'">'+fmt(s.netWorth)+'</strong></span>';
+      var btn = document.createElement('button'); btn.textContent='Delete'; btn.className='text-xs text-slate-400 hover:text-rose-300 font-semibold';
+      btn.addEventListener('click', function(){ var all=getSnaps(); all.splice(all.indexOf(all.filter(function(x){return x.ts===s.ts;})[0]),1); setSnaps(all); renderSnaps(); });
+      li.appendChild(btn); list.appendChild(li);
+    });
+    var note = document.getElementById('sparkNote');
+    if (snaps.length === 0){ document.getElementById('sparkLine').setAttribute('points',''); note.textContent='No snapshots yet — save your first one above.'; return; }
+    document.getElementById('sparkLine').setAttribute('points', L.sparklinePoints(snaps.map(function(s){return s.netWorth;}), 240, 60, 6));
+    var ch = L.changeSince(snaps);
+    note.textContent = snaps.length + ' snapshot(s). ' + (ch ? ('Change since first: ' + fmt(ch.diff) + (ch.pct!==null ? ' ('+(ch.pct>=0?'+':'')+ch.pct.toFixed(1)+'%)' : '') + '.') : 'Save one more to see your change over time.');
+  }
+  var aBox = document.getElementById('assetRows'), lBox = document.getElementById('liabRows');
+  defaultAssets.forEach(function(r){ makeRow(aBox, r[0], r[1]); });
+  defaultLiabs.forEach(function(r){ makeRow(lBox, r[0], r[1]); });
+  document.getElementById('addAsset').addEventListener('click', function(){ makeRow(aBox,'New asset',''); });
+  document.getElementById('addLiab').addEventListener('click', function(){ makeRow(lBox,'New liability',''); });
+  document.getElementById('currency').addEventListener('change', function(e){ sym = e.target.value; recalc(); renderSnaps(); });
+  document.getElementById('age').addEventListener('input', recalc);
+  document.getElementById('income').addEventListener('input', recalc);
+  document.getElementById('loadSample').addEventListener('click', function(){
+    aBox.innerHTML=''; lBox.innerHTML='';
+    [['Cash & savings',18500],['Investments & retirement',64200],['Home value',385000],['Vehicles',17400],['Other assets',3000]].forEach(function(r){ makeRow(aBox,r[0],r[1]); });
+    [['Mortgage',268000],['Car loan',9200],['Student loans',0],['Credit cards',1450],['Other debts',0]].forEach(function(r){ makeRow(lBox,r[0],r[1]); });
+    recalc();
+  });
+  document.getElementById('clearAll').addEventListener('click', function(){
+    aBox.innerHTML=''; lBox.innerHTML='';
+    defaultAssets.forEach(function(r){ makeRow(aBox,r[0],r[1]); });
+    defaultLiabs.forEach(function(r){ makeRow(lBox,r[0],r[1]); });
+    recalc();
+  });
+  document.getElementById('saveSnap').addEventListener('click', function(){
+    var res = recalc();
+    var snaps = getSnaps(); snaps.push({ ts: Date.now(), netWorth: Math.round(res.netWorth*100)/100 });
+    setSnaps(snaps); renderSnaps();
+  });
+  recalc(); renderSnaps();
+})();
+</script>
+</body>
+</html>
